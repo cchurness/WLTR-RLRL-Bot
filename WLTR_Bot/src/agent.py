@@ -1,7 +1,7 @@
 import os
-from stable_baselines3 import PPO
 
 from policy import Policy
+import torch
 
 class Agent:
     def __init__(self):
@@ -15,12 +15,14 @@ class Agent:
         #     model = pickle.load(file)
         # self.actor.load_state_dict(model)
         cur_dir = os.path.dirname(os.path.realpath(__file__))
-        model_path = os.path.join(cur_dir, 'wltr_model')
-        model = PPO.load(model_path, device='cpu')
+        model_path = os.path.join(cur_dir, 'policy_model.pt')
 
-        self.policy = Policy(model.policy.mlp_extractor, model.policy.action_net, model.policy.value_net)
+        self.policy: Policy = torch.jit.load(model_path)
+        self.policy.eval()
 
     def act(self, state):
         # Evaluate your model here
+        state = torch.from_numpy(state).float()
         action, _ = self.policy(state)
+        action = action.detach().numpy()
         return action
