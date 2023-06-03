@@ -13,7 +13,7 @@ if __name__ == '__main__':
             logger.log(logging_utils.logging_level,
                        'Skipping upgrade check for now since it looks like you have no internet')
         elif public_utils.is_safe_to_upgrade():
-            subprocess.call([sys.executable, "-m", "pip", "install", '-r', 'requirements.txt'])
+            subprocess.call([sys.executable, "-m", "pip", "install", '-r', 'src/requirements.txt'])
             subprocess.call([sys.executable, "-m", "pip", "install", 'rlbot', '--upgrade'])
 
             # https://stackoverflow.com/a/44401013
@@ -24,10 +24,10 @@ if __name__ == '__main__':
     except ImportError:
         subprocess.call([sys.executable, "-m", "pip", "install", '-r', 'requirements.txt', '--upgrade', '--upgrade-strategy=eager'])
 
-    # try:
-    from rlbot import runner
-    runner.main()
-    # except Exception as e:
-    #     print("Encountered exception: ", e)
-    #     print("Press enter to close.")
-    #     input()
+    try:
+        from rlbot import runner
+        runner.main()
+    except Exception as e:
+        print("Encountered exception: ", e)
+        print("Press enter to close.")
+        input()
