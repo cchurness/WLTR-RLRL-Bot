@@ -16,7 +16,7 @@ model = PPO("MlpPolicy", env=env, verbose=1)
 model.learn(total_timesteps=int(1e3))
 
 # Save the model
-from WLTR_Bot.src.policy import Policy
+from WLTR_Training.policy import Policy
 
 policy = Policy(model.policy.mlp_extractor, model.policy.action_net, model.policy.value_net).to('cpu')
 

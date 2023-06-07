@@ -1,6 +1,5 @@
 import os
 
-from policy import Policy
 import torch
 
 class Agent:
@@ -17,7 +16,7 @@ class Agent:
         cur_dir = os.path.dirname(os.path.realpath(__file__))
         model_path = os.path.join(cur_dir, 'policy_model.pt')
 
-        self.policy: Policy = torch.jit.load(model_path)
+        self.policy: torch.nn.model = torch.jit.load(model_path)
         self.policy.eval()
 
     def act(self, state):
