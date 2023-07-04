@@ -2,6 +2,8 @@ import os
 
 import torch
 
+from policy import Policy
+
 class Agent:
     def __init__(self):
         # If you need to load your model from a file this is the time to do it
@@ -16,7 +18,7 @@ class Agent:
         cur_dir = os.path.dirname(os.path.realpath(__file__))
         model_path = os.path.join(cur_dir, 'policy_model.pt')
 
-        self.policy: torch.nn.model = torch.jit.load(model_path)
+        self.policy: torch.nn.module = torch.jit.load(model_path)
         self.policy.eval()
 
     def act(self, state):
