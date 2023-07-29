@@ -55,58 +55,62 @@ def main():
 
     # ------------------------------
 
-    from policy import Policy
-    if input_file:
-        print("Loading model from file...")
-        try:
-            policy: Policy = torch.jit.load(input_file).to(device)
-        except Exception as e:
-            print("Error loading model from file. Aborting.")
-            raise e
+    # from policy import Policy
+    # if input_file:
+    #     print("Loading model from file...")
+    #     try:
+    #         policy: Policy = torch.jit.load(input_file).to(device)
+    #     except Exception as e:
+    #         print("Error loading model from file. Aborting.")
+    #         raise e
 
     # ------------------------------
 
-    import rlgym
+    import rlgym_sim as rlgym
     from stable_baselines3 import PPO
     from rlgym_tools.sb3_utils import SB3SingleInstanceEnv, SB3MultipleInstanceEnv
 
     print("Creating gym environment...")
 
-    from rlgym.utils.reward_functions.common_rewards import EventReward, LiuDistancePlayerToBallReward, LiuDistanceBallToGoalReward, VelocityBallToGoalReward, VelocityPlayerToBallReward
-    from rlgym.utils.reward_functions import CombinedReward
-    from rlgym.envs import Match
+    from rlgym_sim.utils.reward_functions.common_rewards import EventReward, LiuDistancePlayerToBallReward, LiuDistanceBallToGoalReward, TouchBallReward
+    from rlgym_sim.utils.reward_functions.common_rewards import VelocityPlayerToBallReward, VelocityBallToGoalReward, FaceBallReward, RewardIfBehindBall
+    from rlgym_sim.utils.reward_functions.common_rewards import BallYCoordinateReward
+    from rlgym_sim.utils.reward_functions import CombinedReward
+    from rlgym_sim.envs import Match
 
-    from rlgym.utils.obs_builders import DefaultObs
-    from rlgym.utils.action_parsers import DefaultAction
-    from rlgym.utils.state_setters import DefaultState
-    from rlgym.utils.terminal_conditions.common_conditions import TimeoutCondition, GoalScoredCondition
+    from rlgym_sim.utils.obs_builders import DefaultObs
+    from rlgym_sim.utils.action_parsers import DefaultAction
+    from rlgym_sim.utils.state_setters import DefaultState
+    from rlgym_sim.utils.terminal_conditions.common_conditions import TimeoutCondition, GoalScoredCondition
+
+    # Hit ball reward
+    hit_ball_reward = CombinedReward(reward_functions=[
+        EventReward(goal=1, concede=-1),
+        TouchBallReward(),
+        RewardIfBehindBall(FaceBallReward()),
+        RewardIfBehindBall(LiuDistancePlayerToBallReward()),
+        LiuDistanceBallToGoalReward(),
+    ], reward_weights=[
+        1_000_000,
+        1_000,
+        1,
+        5,
+        10,
+    ])
 
     def get_match():
         return Match(
-            reward_function=CombinedReward(reward_functions=[
-                EventReward(goal=100, concede=-100, touch=1),
-                LiuDistancePlayerToBallReward(),
-                LiuDistanceBallToGoalReward(),
-                VelocityPlayerToBallReward(),
-                VelocityBallToGoalReward(),
-            ], reward_weights=[
-                1,
-                10,
-                10,
-                1,
-                1,
-            ]),
+            reward_function=hit_ball_reward,
             terminal_conditions=[TimeoutCondition(1000), GoalScoredCondition()],
             obs_builder=DefaultObs(),
             action_parser=DefaultAction(),
             state_setter=DefaultState(),
 
             spawn_opponents=True,
-            game_speed=1000,
         )
 
     # # Create gym environment
-    # gym_env = rlgym.make(
+    # gym_env = rlgym_sim.make(
     #     use_injector=True,
     #     spawn_opponents=True,
     #     reward_fn=EventReward(goal=1, concede=-1),
@@ -115,13 +119,10 @@ def main():
     # # Wrap the gym environment in a stable_baselines3 environment for training
     # env = SB3SingleInstanceEnv(gym_env)
 
-    from rlgym.gamelaunch.launch import LaunchPreference
-
     env = SB3MultipleInstanceEnv(
         match_func_or_matches=get_match, 
-        num_instances=5, 
-        wait_time=60,
-        launch_preference=LaunchPreference.EPIC_LOGIN_TRICK
+        num_instances=10, 
+        wait_time=0,
     )
 
     def exit_gym():
@@ -130,19 +131,16 @@ def main():
         print("Gym environment closed.")
 
     # Initialize PPO from stable_baselines3
-    model = PPO("MlpPolicy", env=env, verbose=1, device=device, learning_rate=0.0003)
+    model = PPO("MlpPolicy", env=env, verbose=1, device=device, learning_rate=0.0001)
 
     # ------------------------------
 
-    # Inject the model into the PPO model (if specified)
     if input_file:
-        print("Injecting model into PPO...")
+        print("Loading model from file...")
         try:
-            model.policy.mlp_extractor = policy.extractor
-            model.policy.action_net = policy.action_net
-            model.policy.value_net = policy.value_net
+            model.set_parameters(input_file, device=device)
         except Exception as e:
-            print("Error injecting model. Cancelling training.")
+            print("Error loading model from file. Aborting.")
             exit_gym()
             raise e
         
@@ -152,25 +150,12 @@ def main():
     if not output_file:
         import os
         cur_dir = os.path.dirname(os.path.realpath(__file__))
-        output_file = os.path.join(cur_dir, 'policy_model.pt')
+        output_file = os.path.join(cur_dir, 'policy_model.zip')
 
-    # Create a function to save the model,
-    # This way we can save the model repeatedly
-    # in case of a crash/termination while training
     def save_model():
         print("Saving model...")
         try:
-            policy: Policy = Policy( # Convert PPO to Torch model
-                model.policy.mlp_extractor, 
-                model.policy.action_net, 
-                model.policy.value_net
-            )
-
-            # I don't really know what scripting does,
-            # but it seems to be necessary to save the model
-            model_scripted = torch.jit.script(policy)
-
-            model_scripted.save(output_file)
+            model.save(output_file)
         except Exception as e:
             print("Error saving model. Cancelling training.")
             exit_gym()
@@ -182,12 +167,26 @@ def main():
 
     end_time = time() + (duration * 60 * 60) # Convert hours to seconds
 
+    from stable_baselines3.common.callbacks import BaseCallback
+
+    class SaveCallback(BaseCallback):
+        def __init__(self, verbose: int = 0, freq: int = 100_000):
+            super().__init__(verbose)
+
+            self.freq = freq
+
+        def _on_step(self) -> bool:
+            if self.n_calls % self.freq == 0:
+                save_model()
+
+            return True
+
     try:
         # Train our agent!
         print("Training...")
-        while time() < end_time:
-            model.learn(total_timesteps=int(5e5), log_interval=5, progress_bar=True)
-            save_model()
+        # while time() < end_time:
+        
+        model.learn(total_timesteps=int(1_000_000_000), log_interval=5, progress_bar=True, reset_num_timesteps=False, callback=SaveCallback())
     except KeyboardInterrupt:
         save_model()
         exit_gym()
