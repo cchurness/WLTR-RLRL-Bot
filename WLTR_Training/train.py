@@ -66,22 +66,25 @@ def main():
 
     # ------------------------------
 
-    import rlgym_sim as rlgym
+    import rlgym as rlgym
     from stable_baselines3 import PPO
-    from rlgym_tools.sb3_utils import SB3SingleInstanceEnv, SB3MultipleInstanceEnv
+    from rlgym_tools.sb3_utils import SB3MultipleInstanceEnv
 
     print("Creating gym environment...")
 
-    from rlgym_sim.utils.reward_functions.common_rewards import EventReward, LiuDistancePlayerToBallReward, LiuDistanceBallToGoalReward, TouchBallReward
-    from rlgym_sim.utils.reward_functions.common_rewards import VelocityPlayerToBallReward, VelocityBallToGoalReward, FaceBallReward, RewardIfBehindBall
-    from rlgym_sim.utils.reward_functions.common_rewards import BallYCoordinateReward
-    from rlgym_sim.utils.reward_functions import CombinedReward
-    from rlgym_sim.envs import Match
+    from rlgym.utils.reward_functions.common_rewards import EventReward, LiuDistancePlayerToBallReward, LiuDistanceBallToGoalReward, TouchBallReward
+    from rlgym.utils.reward_functions.common_rewards import VelocityPlayerToBallReward, VelocityBallToGoalReward, FaceBallReward, RewardIfBehindBall
+    from rlgym.utils.reward_functions.common_rewards import BallYCoordinateReward
+    from rlgym.utils.reward_functions import CombinedReward
+    from rlgym.envs import Match
 
-    from rlgym_sim.utils.obs_builders import DefaultObs
-    from rlgym_sim.utils.action_parsers import DefaultAction
-    from rlgym_sim.utils.state_setters import DefaultState
-    from rlgym_sim.utils.terminal_conditions.common_conditions import TimeoutCondition, GoalScoredCondition
+    from rlgym.utils.obs_builders import DefaultObs
+    from rlgym.utils.action_parsers import DefaultAction
+    from rlgym.utils.state_setters import DefaultState
+    from rlgym.utils.terminal_conditions.common_conditions import TimeoutCondition, GoalScoredCondition
+
+    from rlgym_tools.extra_action_parsers.lookup_act import LookupAction
+    from rlgym_tools.extra_obs.advanced_padder import AdvancedObsPadder
 
     # Hit ball reward
     hit_ball_reward = CombinedReward(reward_functions=[
@@ -107,10 +110,11 @@ def main():
             state_setter=DefaultState(),
 
             spawn_opponents=True,
+            game_speed=5
         )
 
     # # Create gym environment
-    # gym_env = rlgym_sim.make(
+    # gym_env = rlgym.make(
     #     use_injector=True,
     #     spawn_opponents=True,
     #     reward_fn=EventReward(goal=1, concede=-1),
@@ -121,8 +125,10 @@ def main():
 
     env = SB3MultipleInstanceEnv(
         match_func_or_matches=get_match, 
-        num_instances=10, 
+        num_instances=1, 
         wait_time=0,
+
+        launch_preference="epic_login_trick"
     )
 
     def exit_gym():
@@ -186,7 +192,7 @@ def main():
         print("Training...")
         # while time() < end_time:
         
-        model.learn(total_timesteps=int(1_000_000_000), log_interval=5, progress_bar=True, reset_num_timesteps=False, callback=SaveCallback())
+        model.learn(total_timesteps=int(10_000_000_000), log_interval=5, progress_bar=True, reset_num_timesteps=False, callback=SaveCallback())
     except KeyboardInterrupt:
         save_model()
         exit_gym()
