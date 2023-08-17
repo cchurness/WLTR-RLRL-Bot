@@ -51,9 +51,9 @@ if __name__ == "__main__":
             # self_play=True,  in rlgym 1.2 'self_play' is depreciated. Uncomment line if using an earlier version and comment out spawn_opponents
             spawn_opponents=True,
             terminal_conditions=[TimeoutCondition(fps * 300), NoTouchTimeoutCondition(fps * 45), GoalScoredCondition()],
-            obs_builder=AdvancedObsPadder(expanding=True),  # Not that advanced, good default
+            obs_builder=AdvancedObsPadder(expanding=True),
             state_setter=RandomState(),
-            action_parser=LookupAction()  # Lookup > Discrete
+            action_parser=LookupAction()
         )
     
     env = SB3MultipleInstanceEnv(get_match, num_instances, wait_time=0, tick_skip=8, dodge_deadzone=0.5, copy_gamestate_every_step=False)            # Start 1 instances, waiting 60 seconds between each

@@ -3,9 +3,11 @@ from rlbot.utils.structures.game_data_struct import GameTickPacket
 
 import numpy as np
 
-from action.default_act import DefaultAction
+# from action.default_act import DefaultAction
+from action.lookup_act import LookupAction as DefaultAction
 from agent import Agent
-from obs.default_obs import DefaultObs
+# from obs.default_obs import DefaultObs
+from obs.advanced_padder import AdvancedObsPadder as DefaultObs
 from rlgym_compat import GameState
 
 
@@ -73,7 +75,7 @@ class WLTR(BaseAgent):
                 self.game_state.players = [player, opponent]
 
             obs = self.obs_builder.build_obs(player, self.game_state, self.action)
-            self.action = self.act_parser.parse_actions(self.agent.act(obs), self.game_state)[0]  # Dim is (N, 8)
+            self.action = self.act_parser.parse_actions(self.agent.act(obs), self.game_state)  # Dim is (N, 8)
 
         if self.ticks >= self.tick_skip - 1:
             self.update_controls(self.action)

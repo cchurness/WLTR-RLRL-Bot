@@ -7,7 +7,7 @@ from policy import Policy
 
 if __name__ == "__main__":
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    model_path = os.path.join(cur_dir, 'policy_model.zip')
+    model_path = os.path.join(cur_dir, 'ppo_model.zip')
     model = PPO.load(model_path, device="cpu")
 
     policy: Policy = Policy( # Convert PPO to Torch model
