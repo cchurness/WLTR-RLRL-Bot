@@ -1,5 +1,6 @@
 absl-py==1.4.0
 ale-py==0.7.4
+astunparse==1.6.3
 AutoROM==0.6.1
 AutoROM.accept-rom-license==0.6.1
 cachetools==5.3.1
@@ -10,16 +11,22 @@ cloudpickle==2.2.1
 colorama==0.4.6
 comtypes==1.2.0
 cycler==0.11.0
+flatbuffers==23.5.26
 fonttools==4.38.0
+gast==0.4.0
 google-auth==2.19.1
 google-auth-oauthlib==0.4.6
+google-pasta==0.2.0
 grpcio==1.54.2
 gym==0.21.0
 gym-notices==0.0.8
+h5py==3.8.0
 idna==3.4
 importlib-metadata==4.13.0
 importlib-resources==5.12.0
+keras==2.11.0
 kiwisolver==1.4.4
+libclang==16.0.6
 Markdown==3.4.3
 markdown-it-py==2.2.0
 MarkupSafe==2.1.3
@@ -28,10 +35,11 @@ mdurl==0.1.2
 numpy==1.21.6
 oauthlib==3.2.2
 opencv-python==4.7.0.72
+opt-einsum==3.3.0
 packaging==23.1
 pandas==1.3.5
 Pillow==9.5.0
-protobuf==3.20.3
+protobuf==3.19.6
 psutil==5.9.5
 pyasn1==0.5.0
 pyasn1-modules==0.3.0
@@ -45,13 +53,20 @@ requests==2.31.0
 requests-oauthlib==1.3.1
 rich==13.4.1
 rlgym==1.2.0
+rlgym-sim @ git+https://github.com/AechPro/rocket-league-gym-sim@b5d160c762ae50ffb031270946aa33183fb9cb11
 rlgym-tools==1.8.2
+RocketSim @ git+https://github.com/mtheall/RocketSim@89c5022b4c53c70562f63520e80dbaea40424ce3
 rsa==4.9
 six==1.16.0
 stable-baselines3==1.8.0
 tensorboard==2.11.2
 tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.1
+tensorflow==2.11.0
+tensorflow-estimator==2.11.0
+tensorflow-intel==2.11.0
+tensorflow-io-gcs-filesystem==0.31.0
+termcolor==2.3.0
 torch==1.13.1+cu117
 torchaudio==0.13.1+cu117
 torchvision==0.14.1+cu117
@@ -59,4 +74,5 @@ tqdm==4.65.0
 typing-extensions==4.6.3
 urllib3==2.0.2
 Werkzeug==2.2.3
+wrapt==1.15.0
 zipp==3.15.0
